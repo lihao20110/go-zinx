@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/lihao20110/go-zinx/global"
 	"github.com/lihao20110/go-zinx/ziface"
 )
 
@@ -19,11 +20,13 @@ type Server struct {
 
 //NewServer 创造一个服务器句柄
 func NewServer(name string) ziface.IServer {
+	//先初始化全局配置文件
+	global.ServerObj.Reload()
 	return &Server{
-		Name:      name,
+		Name:      global.ServerObj.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      7777,
+		IP:        global.ServerObj.Host,
+		Port:      global.ServerObj.TcpPort,
 		Router:    nil,
 	}
 }
@@ -31,6 +34,10 @@ func NewServer(name string) ziface.IServer {
 // Start 启动服务器
 func (s *Server) Start() {
 	fmt.Printf("[START] Server listener at %s:%d is starting\n", s.IP, s.Port)
+	fmt.Printf("[Zinx] Version: %s, MaxConn: %d,  MaxPacketSize: %d\n",
+		global.ServerObj.Version,
+		global.ServerObj.MaxConn,
+		global.ServerObj.MaxPacketSize)
 	//开启一个goroutine去做服务端的Listen监听服务
 	go func() {
 		//1.获取一个TCP的Addr
