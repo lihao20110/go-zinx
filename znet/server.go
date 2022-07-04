@@ -1,7 +1,6 @@
 package znet
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -11,10 +10,11 @@ import (
 
 // Server IServer 接口实现，定义一个Server服务类
 type Server struct {
-	Name      string //服务器的名称
-	IPVersion string //tcp4 or other
-	IP        string //服务器绑定的地址
-	Port      int    //服务器绑定的端口
+	Name      string         //服务器的名称
+	IPVersion string         //tcp4 or other
+	IP        string         //服务器绑定的地址
+	Port      int            //服务器绑定的端口
+	Router    ziface.IRouter //当前Server由用户绑定的回调router,也就是Server注册的链接对应的处理业务
 }
 
 //NewServer 创造一个服务器句柄
@@ -24,18 +24,8 @@ func NewServer(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      7777,
+		Router:    nil,
 	}
-}
-
-//CallBackToClient 定义客户端连接所绑定的handle api（目前是写死的，以后优化后由用户自定义handle方法）
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	//回显的业务
-	fmt.Println("[Conn Handle] CallBackToClient...")
-	if _, err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("Write back buf err", err)
-		return errors.New("CallBackToClient error")
-	}
-	return nil
 }
 
 // Start 启动服务器
@@ -68,7 +58,7 @@ func (s *Server) Start() {
 			}
 			//TODO Server.Start() 设置服务器最大连接控制，如果超过最大连接，那么关闭此新的连接
 			//处理该连接请求的业务方法，handler和conn绑定
-			dealConn := NewConnection(conn, cid, CallBackToClient)
+			dealConn := NewConnection(conn, cid, s.Router)
 			cid++
 			//启动当前业务的连接业务处理
 			go dealConn.Start()
@@ -90,4 +80,10 @@ func (s *Server) Serve() {
 	for {
 		time.Sleep(10 * time.Second)
 	}
+}
+
+//AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
+func (s *Server) AddRouter(router ziface.IRouter) {
+	s.Router = router
+	fmt.Println("Add Router success!")
 }
