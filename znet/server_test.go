@@ -38,7 +38,7 @@ func ClientTest() {
 //TestServer 服务端模块测试函数
 func TestServer(t *testing.T) {
 	//1.创建一个server句柄 s
-	s := NewServer("[zinx v0.1]")
+	s := NewServer("[zinx v0.2]")
 
 	//客户端测试
 	go ClientTest()
