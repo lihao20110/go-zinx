@@ -19,7 +19,7 @@ type ServerObject struct {
 }
 
 //ServerObj 定义一个全部对象
-var ServerObj *ServerObject
+var ServerObj = &ServerObject{}
 
 //Reload 读取用户配置文件
 func (s *ServerObject) Reload() {
@@ -29,7 +29,7 @@ func (s *ServerObject) Reload() {
 	}
 	//将json数据解析到struct中
 	//fmt.Printf("json:%s\n",data)
-	err = json.Unmarshal(data, &ServerObject{})
+	err = json.Unmarshal(data, ServerObj)
 	if err != nil {
 		panic(err)
 	}
@@ -37,15 +37,6 @@ func (s *ServerObject) Reload() {
 
 //提供init方法，默认加载
 func init() {
-	//初始化ServerObj变量，设置一些默认值
-	ServerObj = &ServerObject{
-		Name:          "ZinxServerApp",
-		Version:       "V0.4",
-		TcpPort:       7777,
-		Host:          "0.0.0.0",
-		MaxConn:       12000,
-		MaxPacketSize: 4096,
-	}
 	//从配置文件中加载一些用户配置的参数
 	ServerObj.Reload()
 }
