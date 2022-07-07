@@ -89,7 +89,7 @@ func TestClient0(t *testing.T) {
 	for {
 		//发封包message消息
 		dp := NewDataPack()
-		msg, _ := dp.Pack(NewMsgPackage(0, []byte("Zinx V0.6 Client0 Test Message")))
+		msg, _ := dp.Pack(NewMsgPackage(0, []byte("Zinx V0.7 Client0 Test Message")))
 		_, err = conn.Write(msg)
 		if err != nil {
 			fmt.Println("Write error:", err)
@@ -140,7 +140,7 @@ func TestClient1(t *testing.T) {
 	for {
 		//发封包message消息
 		dp := NewDataPack()
-		msg, _ := dp.Pack(NewMsgPackage(1, []byte("Zinx V0.6 Client1 Test Message")))
+		msg, _ := dp.Pack(NewMsgPackage(1, []byte("Zinx V0.7 Client1 Test Message")))
 		_, err = conn.Write(msg)
 		if err != nil {
 			fmt.Println("Write error:", err)

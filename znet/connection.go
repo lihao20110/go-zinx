@@ -16,6 +16,7 @@ type Connection struct {
 	isClosed   bool              //当前的连接状态
 	MsgHandler ziface.IMsgHandle //消息管理MsgId和对应处理方法的消息管理模块
 	ExitChan   chan bool         //告知当前连接已退出、停止 channel
+	msgChan    chan []byte       //无缓冲管道，用于读写两个goroutine之间的消息通信
 }
 
 //NewConnection 创建连接的方法
@@ -26,10 +27,31 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 		false,
 		msgHandler,
 		make(chan bool, 1),
+		make(chan []byte), //msgChan初始化,作用是用于读写两个go的通信
 	}
 }
 
-//StartReader 连接的读业务方法
+//StartWriter 写消息goroutine，用户将数据发送给客户端
+func (c *Connection) StartWriter() {
+	fmt.Println("[Writer Goroutine is running]")
+	defer fmt.Println(c.RemoteAddr().String(), "[conn Writer exit")
+	for {
+		select {
+		case data := <-c.msgChan:
+			//有数据要写给客户端
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("Send Data error:", err, "conn Writer exit")
+				c.ExitChan <- true
+				return
+			}
+		case <-c.ExitChan:
+			//conn 已经关闭
+			return
+		}
+	}
+}
+
+//StartReader 连接的读消息业务方法
 func (c *Connection) StartReader() {
 	fmt.Println("Reader Goroutine is running...")
 	defer fmt.Println("connID=", c.ConnID, "Reader is exit,remote addr is", c.RemoteAddr().String())
@@ -75,9 +97,10 @@ func (c *Connection) StartReader() {
 //Start 启动连接，让当前连接开始工作
 func (c *Connection) Start() {
 	fmt.Println("Conn Start()... ConnID=", c.ConnID)
-	//启动从当前连接的读数据业务
-	//TODO 启动从当前连接的读数据业务
+	//1 开启用户从客户端读取数据流程的Goroutine
 	go c.StartReader()
+	//2 开启用于写回客户端数据流程的Goroutine
+	go c.StartWriter()
 
 	for {
 		select {
@@ -117,7 +140,7 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-//SendMsg 发送数据给远程客户端,提供一个封包的接口，供Zinx发包使用。
+//SendMsg 发送客户端的数据改为发送至msgChan,交给写goroutine执行发送
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	if c.isClosed == true {
 		return errors.New("Connection closed when send msg ")
@@ -130,10 +153,6 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 		return errors.New("Pack error msg ")
 	}
 	//写回客户端
-	if _, err := c.Conn.Write(msg); err != nil {
-		fmt.Println("Write msg id ", msgId, " error ")
-		c.ExitChan <- true
-		return errors.New("conn Write error")
-	}
+	c.msgChan <- msg //将之前直接回写给conn.Write的方法 改为 发送给Channel 供Writer读取
 	return nil
 }
