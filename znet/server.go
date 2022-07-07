@@ -11,11 +11,11 @@ import (
 
 // Server IServer 接口实现，定义一个Server服务类
 type Server struct {
-	Name      string         //服务器的名称
-	IPVersion string         //tcp4 or other
-	IP        string         //服务器绑定的地址
-	Port      int            //服务器绑定的端口
-	Router    ziface.IRouter //当前Server由用户绑定的回调router,也就是Server注册的链接对应的处理业务
+	Name       string            //服务器的名称
+	IPVersion  string            //tcp4 or other
+	IP         string            //服务器绑定的地址
+	Port       int               //服务器绑定的端口
+	msgHandler ziface.IMsgHandle //当前Server的消息管理模块，用来绑定MsgId和对应的处理方法
 }
 
 //NewServer 创造一个服务器句柄
@@ -23,11 +23,11 @@ func NewServer() ziface.IServer {
 	//先初始化全局配置文件
 	global.ServerObj.Reload()
 	s := &Server{
-		Name:      global.ServerObj.Name,
-		IPVersion: "tcp4",
-		IP:        global.ServerObj.Host,
-		Port:      global.ServerObj.TcpPort,
-		Router:    nil,
+		Name:       global.ServerObj.Name,
+		IPVersion:  "tcp4",
+		IP:         global.ServerObj.Host,
+		Port:       global.ServerObj.TcpPort,
+		msgHandler: NewMsgHandle(), //msgHandler 初始化
 	}
 	global.ServerObj.TcpServer = s
 	return s
@@ -67,7 +67,7 @@ func (s *Server) Start() {
 			}
 			//TODO Server.Start() 设置服务器最大连接控制，如果超过最大连接，那么关闭此新的连接
 			//处理该连接请求的业务方法，handler和conn绑定
-			dealConn := NewConnection(conn, cid, s.Router)
+			dealConn := NewConnection(conn, cid, s.msgHandler)
 			cid++
 			//启动当前业务的连接业务处理
 			go dealConn.Start()
@@ -92,7 +92,7 @@ func (s *Server) Serve() {
 }
 
 //AddRouter 路由功能：给当前服务注册一个路由业务方法，供客户端链接处理使用
-func (s *Server) AddRouter(router ziface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
+	s.msgHandler.AddRouter(msgId, router)
 	fmt.Println("Add Router success!")
 }

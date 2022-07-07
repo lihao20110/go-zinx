@@ -2,7 +2,7 @@
   "Host":"127.0.0.1",
   "TcpPort":7777,
   "Name":"demo server",
-  "Version": "v0.5",
+  "Version": "v0.6",
   "MaxPacketSize":  12000,
   "MaxConn":4096
 }
