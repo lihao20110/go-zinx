@@ -18,6 +18,7 @@ type ServerObject struct {
 	MaxConn          int            //当前服务器主机允许的最大链接个数
 	WorkerPoolSize   uint32         //业务工作Worker池的数量
 	MaxWorkerTaskLen uint32         //业务工作Worker对应负责的任务队列最大任务存储数量
+	MaxMsgChanLen    uint32         //读、写两个goroutine之间的消息通信管道大小
 	ConfigFilePath   string         //config file path
 }
 
@@ -40,6 +41,6 @@ func (s *ServerObject) Reload() {
 
 //提供init方法，默认加载
 func init() {
-	//从配置文件中加载一些用户配置的参数
+	//从配置文件config/zinx.json中加载一些用户配置的参数
 	ServerObj.Reload()
 }

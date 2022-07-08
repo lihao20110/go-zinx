@@ -2,10 +2,11 @@
   "Host":"127.0.0.1",
   "TcpPort":7777,
   "Name":"ZinxServerApp",
-  "Version": "v0.8",
+  "Version": "v0.9",
   "MaxPacketSize":  12000,
   "MaxConn":4096,
   "WorkerPoolSize": 10,
   "MaxWorkerTaskLen": 1024,
+  "MaxMsgChanLen": 10,
   "ConfigFilePath": "config/zinx.json"
 }
