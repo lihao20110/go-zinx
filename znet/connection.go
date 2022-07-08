@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 
+	"github.com/lihao20110/go-zinx/global"
 	"github.com/lihao20110/go-zinx/ziface"
 )
 
@@ -89,8 +90,14 @@ func (c *Connection) StartReader() {
 			conn: c,
 			msg:  msg,
 		}
-		//从绑定好的消息和对应的处理方法中执行对应的Handle方法
-		go c.MsgHandler.DoMsgHandler(&req)
+		//判断用户配置WorkerPoolSize的个数，如果大于0，那么我就启动多任务机制处理链接请求消息，如果=0或者<0那么，我们依然只是之前的开启一个临时的Goroutine处理客户端请求消息。
+		if global.ServerObj.WorkerPoolSize > 0 {
+			//已经启动工作池机制，将消息交给Worker处理
+			c.MsgHandler.SendMsgToTaskQueue(&req)
+		} else {
+			//从绑定好的消息和对应的处理方法中执行对应的Handle方法
+			go c.MsgHandler.DoMsgHandler(&req)
+		}
 	}
 }
 

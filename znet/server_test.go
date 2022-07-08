@@ -56,7 +56,7 @@ func (hz *HelloZinxRouter) Handle(request ziface.IRequest) {
 	//先读取客户端的数据，再回写ping...ping...ping
 	fmt.Println("recv from client : msgId=", request.GetMsgID(), ", data=", string(request.GetData()))
 	//回写数据
-	err := request.GetConnection().SendMsg(2, []byte("Hello Zinx Router V0.6\n"))
+	err := request.GetConnection().SendMsg(2, []byte("Hello Zinx Router V0.8\n"))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -89,7 +89,7 @@ func TestClient0(t *testing.T) {
 	for {
 		//发封包message消息
 		dp := NewDataPack()
-		msg, _ := dp.Pack(NewMsgPackage(0, []byte("Zinx V0.7 Client0 Test Message")))
+		msg, _ := dp.Pack(NewMsgPackage(0, []byte("Zinx V0.8 Client0 Test Message")))
 		_, err = conn.Write(msg)
 		if err != nil {
 			fmt.Println("Write error:", err)
@@ -140,7 +140,7 @@ func TestClient1(t *testing.T) {
 	for {
 		//发封包message消息
 		dp := NewDataPack()
-		msg, _ := dp.Pack(NewMsgPackage(1, []byte("Zinx V0.7 Client1 Test Message")))
+		msg, _ := dp.Pack(NewMsgPackage(1, []byte("Zinx V0.8 Client1 Test Message")))
 		_, err = conn.Write(msg)
 		if err != nil {
 			fmt.Println("Write error:", err)
